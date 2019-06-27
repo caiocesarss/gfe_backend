@@ -20,6 +20,12 @@ router.get('/:party_id', function(req, res){
     })
 })
 
+router.get('/', function(req, res){
+  getPartyAccounts(req, res)
+  
+})
+
+
 router.post('/', function(req, res){
     const cpf = req.body.doc1_value;
     const { valid } = validCPF.validate(validCPF.strip(cpf));
