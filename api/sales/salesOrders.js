@@ -115,22 +115,30 @@ router.delete('/:order_id', function(req, res){
 })
 
 router.post('/adddetail', function(req, res){
-  const str = CircularJSON.stringify(req);
-  let rowsInserted = 0;
-
   const orderId = req.body.order_id;
   const saleDetails = req.body.accounts;
-  saleDetails.map(detail => {
-    
+  saleDetails.map(async detail => {
     const inData = {...detail, order_id: orderId}
-    
-    knex.insert(inData).returning('*').into('sales_order_details').then(function(data){
-      rowsInserted += 1;
+    const intof = detail;
+    delete(inData.furthers);
+    const detailId = await setOrderDetail(inData);
+    intof.furthers.map(fdet => {
+      const addtof = {...fdet, sale_detail_id: detailId}
+      knex.insert(addtof).returning('*').into('sales_detail_furthers').then(function(data){
+        
+      })
     })
   })
-  setAr(orderId);
+  //setAr(orderId);
   res.status(200).send(orderId)
 })
+
+async function  setOrderDetail (inData) {
+  const ret = await knex.insert(inData).returning('detail_id').into('sales_order_details').then(function(data){
+    return data[0];
+  })
+  return ret;
+}
 
 router.post('/setar', function(req, res){
   const retd = setAr(68, res);
