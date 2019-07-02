@@ -11,6 +11,7 @@ const knex = require('knex')({
 */
 
 
+/*
 const knex = require('knex')({
   client: 'pg',
   connection: {
@@ -20,6 +21,7 @@ const knex = require('knex')({
     database : 'qbvfhnbk'
   }
 });
+*/
 
 /*
 const knex = require('knex')({
@@ -32,16 +34,16 @@ const knex = require('knex')({
   }
 });
 */
-/*
+
 const knex = require('knex')({
   client: 'mysql',
   connection: {
-    host : 'umabrisfx8afs3ja.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
-    user : 'q9vsrnrzzxzrox86',
-    password : 'lfvixbf69h4rn3z5',
-    database : 'xcxwqmgkv2fhtcdl'
+    host : 'k2pdcy98kpcsweia.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
+    user : 'i9pq6f44vivjm0lw',
+    password : 'r5b5jz3pbtrwwkkv',
+    database : 'j1cj4aj0z99qvcyr'
   }
 });
-*/
+
 
 module.exports = knex
