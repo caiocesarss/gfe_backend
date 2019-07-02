@@ -39,7 +39,7 @@ router.post("/select/", function(req, res, next) {
 router.post("/selectaccounts/", function(req, res, next) {
   const table = req.body.table;
   const params = req.body;
- 
+ console.log(params)
   let whereType = "";
   let whereParams = "";
   if (params) {
@@ -49,18 +49,11 @@ router.post("/selectaccounts/", function(req, res, next) {
     whereType = "whereRaw";
     whereParams = "1=1";
   }
-  /*knex('party_accounts')
-    [whereType](whereParams)
-    .select("*")
-    .then(data => {
-      res.send(data);
-    });
-    */
-    
-   knex('party_accounts')
-  .join('locations', 'party_accounts.location_id', 'locations.location_id')
-  .join('cities', 'locations.city_id',  'cities.city_id')
-  .join('ufs', 'cities.uf_id',  'ufs.uf_id')
+   
+  knex('party_accounts')
+  .leftOuterJoin('locations', 'party_accounts.location_id', 'locations.location_id')
+  .leftOuterJoin('cities', 'locations.city_id',  'cities.city_id')
+  .leftOuterJoin('ufs', 'cities.uf_id',  'ufs.uf_id')
   [whereType](whereParams)
   .select('party_accounts.party_account_id'
           ,'party_accounts.legal_account_name as name'
@@ -68,8 +61,9 @@ router.post("/selectaccounts/", function(req, res, next) {
           , 'party_accounts.doc1_value as doc_value'
           , 'cities.name as city_name'
           , 'ufs.code as uf').then(data => {
-    res.send(data);
-  });
+            res.send(data);
+            });
+      
 });
 
 router.put('/:party_id', function(req,res){
