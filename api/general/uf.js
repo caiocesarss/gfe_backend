@@ -4,7 +4,7 @@ const router = express.Router()
 
 
 router.get('/', function(req, res){
-    knex.select().from('ufs').then(data=>{
+    knex.select().from('ufs').orderBy('code').then(data=>{
         res.send(data)
       })
 })

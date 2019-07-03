@@ -8,6 +8,8 @@ router.get('/', function(req, res){
         res.send(data)
       })
 })
+
+
 router.post('/', function(req, res){
   const createdAt  = new Date();
   const pushData = {...req.body, created_at: createdAt};
