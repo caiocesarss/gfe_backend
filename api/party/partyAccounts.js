@@ -14,8 +14,7 @@ Para ambos ao mesmo tempo
 */
 
 router.get('/:party_id', function(req, res){
-    //getPartyAccounts(req, res)
-    console.log(req)
+
     knex('party_accounts').where({party_id: req.params.party_id}).then(data=>{
       res.send(data)
     })

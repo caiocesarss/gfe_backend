@@ -7,57 +7,73 @@ router.get('/', function (req, res) {
   getParties(req, res)
 })
 
+router.get('/:party_id', function(req, res){
+  knex.select().from('parties').where('party_id', req.params.party_id).then(data => {
+    res.send(data)
+  })
+})
+
 router.post('/', async function (req, res) {
   const createdAt = new Date();
-
-
   const partyData = { name: req.body.name, type: req.body.type, created_at: createdAt }
   const partyId = await knex.insert(partyData).into('parties').then(data => {
     return data[0];
   })
+  const resultAL = setPartyAccount(req.body, partyId);
+  res.send({ party_id: partyId, location_id: resultAL.locationId, party_account_id: resultAL.accountId })
+})
+
+router.post('/setaccount/', async function (req, res){
+  partyId = req.body.party_id;
+  try { const result = await setPartyAccount(req.body);
+    res.send({party_id: partyId})
+  } catch (e) {
+    res.status(400)
+    res.send(e.message)
+  }   
+})
+
+async function setPartyAccount(data, partyId) {
 
   const locationData = {
-    address_line: req.body.address_line,
-    number: req.body.number,
-    complement: req.body.complement,
-    reference: req.body.reference,
-    district: req.body.district,
-    city_id: req.body.city,
-    state_id: req.body.uf
+    address_line: data.address_line,
+    number: data.number,
+    complement: data.complement,
+    reference: data.reference,
+    district: data.district,
+    city_id: data.city,
+    state_id: data.uf
   }
+
   const locationId = await knex.insert(locationData).into('locations').then(data => {
     return data[0];
   })
 
   let doc1_type = '';
   let doc2_type = '';
-  if (req.body.type == 'F') {
+  if (data.type == 'F') {
     doc1_type = 'CPF';
     doc2_type = 'RG';
   } else {
     doc1_type = 'CNPJ';
     doc2_type = 'IE';
   }
-
   const partyAccountData = {
-    party_id : partyId,
-    account_alias_name: req.body.account_alias_name,
-    account_alias_name: req.body.account_alias_name,
-    legal_account_name: req.body.legal_account_name,
+    party_id: data.party_id || partyId,
+    account_alias_name: data.account_alias_name,
+    account_alias_name: data.account_alias_name,
+    legal_account_name: data.legal_account_name,
     doc1_type: doc1_type,
-    doc1_value: req.body.doc1_value,
+    doc1_value: data.doc1_value,
     doc2_type: doc2_type,
-    doc2_value: req.body.doc2_value,
+    doc2_value: data.doc2_value,
     location_id: locationId
   }
   const accountId = await knex.insert(partyAccountData).into('party_accounts').then(data => {
     return data[0];
   })
-
-  res.send({party_id: partyId, location_id: locationId, party_account_id: accountId})
-})
-
-
+  return {locationId, accountId}
+}
 
 router.post("/select/", function (req, res, next) {
   const table = req.body.table;
