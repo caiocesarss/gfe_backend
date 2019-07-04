@@ -133,10 +133,31 @@ router.put('/:party_id', function (req, res) {
   })
 })
 
-router.delete('/:party_id', function (req, res) {
-  knex('parties').where({ party_id: req.params.party_id }).del().returning('*').then(function (data) {
-    res.send(data);
+router.delete('/:party_id', async function (req, res) {
+  
+  try { const result = await knex('parties').where({ party_id: req.params.party_id }).del().then(function (data) {
+    return data
   })
+  if (result) {
+    const accounts  = await knex('party_accounts').where({ party_id: req.params.party_id }).select('party_account_id', 'location_id').then(function (data) {
+      return data
+    })
+    accounts.map(async account => {
+      const location = await knex('locations').where({ location_id: account.location_id }).del().then(function (data) {
+        return data
+      })
+    })
+    const accountsDeleted = await knex('party_accounts').where({ party_id: req.params.party_id }).del().then(function (data) {
+      return data
+    })
+  }
+  res.send(200)
+
+  } catch (e) {
+    res.status(400)
+    res.send(e.message)
+  }   
+
 })
 
 const getParties = (req, res) => {
