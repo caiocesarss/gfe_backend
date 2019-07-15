@@ -20,6 +20,18 @@ router.get('/details/:order_id', function(req, res){
   });
 })
 
+router.get('/detail/furthers/:detail_id', function(req, res){
+  const detailId =  req.params.detail_id;
+  knex('sales_detail_furthers').where('sale_detail_id', detailId).then(data => {
+    res.send(data);
+  })
+  /*knex.raw('select * from sales_orders_det_v where order_id = ? ', [detailId])
+  .then(data => {
+    res.send(data[0]);
+  });
+  */
+})
+
 router.post('/', function(req, res){
   const createdAt  = new Date();
   const pushData = {...req.body, created_at: createdAt};

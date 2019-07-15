@@ -16,12 +16,15 @@ module.exports = function(server) {
     mainApi.use('/construction', Construction);
 
     /* COMMONS */
-    
+
     /* END COMMONS */
 
     /* FINANCIALS */
     const FinGroups = require('../api/financials/common/fingroups');
-    mainApi.use('/fingroup', FinGroups);
+    mainApi.use('/common/finGroups', FinGroups);
+
+    const DocumentTypes = require('../api/financials/common/documentTypes');
+    mainApi.use('/common/documentTypes', DocumentTypes);
 
     const PayablesInvoice = require('../api/financials/payables/p_invoices');
     mainApi.use('/payables/invoice', PayablesInvoice);

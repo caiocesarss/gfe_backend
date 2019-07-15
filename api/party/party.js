@@ -3,11 +3,27 @@ const express = require('express')
 const router = express.Router()
 
 
-router.get('/', function (req, res) {
-  getParties(req, res)
+router.get('/:categoria', function (req, res) {
+  let whereType = '';
+  let whereParams = '';
+  whereType = "whereRaw";
+  whereParams = "1=1";
+  if (req.params.categoria === 'fornecedor') {
+    whereType = "where";
+    whereParams = {is_vendor : 1};
+  } 
+  if (req.params.categoria === 'cliente') {
+    whereType = "where";
+    whereParams = {is_customer: 1};
+  } 
+  
+  knex('parties')[whereType](whereParams).select().then(data => {
+    res.send(data)
+  })
 })
 
-router.get('/:party_id', function (req, res) {
+
+router.get('/getById/:party_id', function (req, res) {
   knex.select().from('parties').where('party_id', req.params.party_id).then(data => {
     res.send(data)
   })
@@ -15,7 +31,7 @@ router.get('/:party_id', function (req, res) {
 
 router.post('/', async function (req, res) {
   const createdAt = new Date();
-  const partyData = { name: req.body.name, type: req.body.type, created_at: createdAt }
+  const partyData = { name: req.body.name, type: req.body.type, created_at: createdAt, is_vendor: req.body.is_vendor, is_customer: req.body.is_customer }
   const partyId = await knex.insert(partyData).into('parties').then(data => {
     return data[0];
   })
@@ -87,7 +103,7 @@ router.put('/', async function (req, res) {
   const updatedAt = new Date();
   const createdAt = new Date(req.body.created_at);
   const pushData = { ...req.body, created_at: createdAt, updated_at: updatedAt };
-  const ret = await knex('parties').where({ party_id: pushData.party_id }).update(pushData).returning('*').then(function (data) {
+  const ret = await knex('parties').where({ party_id: pushData.party_id }).update(pushData).then(function (data) {
     return data[0]
   })
   res.send({ dados: ret })
@@ -160,9 +176,5 @@ async function setPartyAccount(data, partyId) {
   return { locationId, accountId }
 }
 
-const getParties = (req, res) => {
-  knex.select().from('parties').then(data => {
-    res.send(data)
-  })
-}
+
 module.exports = router
