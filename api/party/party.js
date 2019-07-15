@@ -126,10 +126,12 @@ router.delete('/:party_id', async function (req, res) {
     ).then(function (data) {
       return data[0]
     })
-
-    if (validate.qt_sales_orders+qt_r_invoices+qt_p_invoices > 0){
+    const total = Number(validate[0].qt_sales_orders)+Number(validate[0].qt_r_invoices)+Number(validate[0].qt_p_invoices);
+    if (total > 0){
+      res.status(200).send({error: 'Existem registros financeiros ativos para este cliente/fornecedor'}); 
       return false;
     }
+    return false;
   try {
     const result = await knex('parties').where({ party_id: req.params.party_id }).del().then(function (data) {
       return data
