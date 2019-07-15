@@ -10,13 +10,13 @@ router.get('/:categoria', function (req, res) {
   whereParams = "1=1";
   if (req.params.categoria === 'fornecedor') {
     whereType = "where";
-    whereParams = {is_vendor : 1};
-  } 
+    whereParams = { is_vendor: 1 };
+  }
   if (req.params.categoria === 'cliente') {
     whereType = "where";
-    whereParams = {is_customer: 1};
-  } 
-  
+    whereParams = { is_customer: 1 };
+  }
+
   knex('parties')[whereType](whereParams).select().then(data => {
     res.send(data)
   })
@@ -110,7 +110,26 @@ router.put('/', async function (req, res) {
 })
 
 router.delete('/:party_id', async function (req, res) {
+  let qtSalesOrders = 0;
+  let qtRInvoices = 0;
+  let qtPInvoices = 0;
+  const validate = await
+    knex.raw('select ' +
+      ' p.party_id ' +
+      ' , (select count(*) from party_accounts pa where pa.party_id = p.party_id) qt_accounts ' +
+      ' , (select count(*) from sales_order_details sod where sod.party_id = p.party_id) qt_sales_orders ' +
+      ' , (select count(*) from r_invoices ri where ri.party_id = p.party_id) qt_r_invoices ' +
+      ' , (select count(*) from p_invoices pi where pi.party_id = p.party_id) qt_p_invoices ' +
+      ' from  ' +
+      ' parties p ' +
+      ' where party_id = ? ', [req.params.party_id]
+    ).then(function (data) {
+      return data[0]
+    })
 
+    if (validate.qt_sales_orders+qt_r_invoices+qt_p_invoices > 0){
+      return false;
+    }
   try {
     const result = await knex('parties').where({ party_id: req.params.party_id }).del().then(function (data) {
       return data
@@ -128,7 +147,7 @@ router.delete('/:party_id', async function (req, res) {
         return data
       })
     }
-    res.send(200)
+    res.status(200)
 
   } catch (e) {
     res.status(400)
