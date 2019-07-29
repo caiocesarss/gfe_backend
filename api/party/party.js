@@ -131,7 +131,7 @@ router.delete('/:party_id', async function (req, res) {
       res.status(200).send({error: 'Existem registros financeiros ativos para este cliente/fornecedor'}); 
       return false;
     }
-    return false;
+  
   try {
     const result = await knex('parties').where({ party_id: req.params.party_id }).del().then(function (data) {
       return data
