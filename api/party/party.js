@@ -165,8 +165,8 @@ async function setPartyAccount(data, partyId) {
     complement: data.complement,
     reference: data.reference,
     district: data.district,
-    city_id: data.city,
-    state_id: data.uf
+    city_id: data.city_id,
+    state_id: data.uf_id
   }
   const locationId = await knex.insert(locationData).into('locations').then(data => {
     return data[0];
