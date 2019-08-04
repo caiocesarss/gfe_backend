@@ -2,6 +2,7 @@ const knex = require('../../config/dbpg');
 const express = require('express')
 const router = express.Router()
 const validCPF = require('cpf-check');
+const _ = require('lodash');
 
 /*
 validador
@@ -19,6 +20,7 @@ router.get('/:party_id', function (req, res) {
     .join('locations', 'party_accounts.location_id', 'locations.location_id')
     .join('cities', 'locations.city_id', 'cities.city_id')
     .join('ufs', 'cities.uf_id', 'ufs.uf_id')
+
     .select('party_accounts.*', 'cities.name as city_name', 'ufs.code as uf')
     .where({ party_id: req.params.party_id }).then(data => {
       res.send(data)
@@ -40,11 +42,50 @@ router.get('/getPartyAccountById/:account_id', function (req, res) {
     })
 })
 
-router.get('/contactsList/:account_id', function (req, res){
-  console.log('ppp');
-  res.send('ola')
+router.get('/contactsListByAccount/:account_id', function (req, res) {
+  knex('party_contacts').where('party_account_id', req.params.account_id).select().then(function (data) {
+    res.send(data)
+  })
 })
 
+router.get('/contactsListByParty/:party_id', function (req, res) {
+  knex('party_contacts').where('party_id', req.params.party_id).select().then(function (data) {
+    res.send(data)
+  })
+})
+
+router.get('/getPartyContactById/:contact_id', function (req, res) {
+  knex('party_contacts').where('contact_id', req.params.contact_id).select().then(function (data) {
+    res.send(data[0])
+  })
+})
+
+router.post('/contact', function (req, res) {
+  const createdAt = new Date();
+  let pushData = { ...req.body, created_at: createdAt }
+  if (req.body.party_account_id == 'undefined'){
+    pushData = _.omit(pushData, ['party_account_id']);
+  }
+  
+  knex('party_contacts').insert(pushData).then(function (data) {
+    res.send(data);
+  })
+})
+
+router.put('/contact/', function (req, res) {
+  const updatedAt = new Date();
+  const pushData = {
+    party_account_id: req.body.party_account_id,
+    contact_type: req.body.contact_type,
+    contact_value: req.body.contact_value,
+    updated_at: updatedAt
+  }
+  const ret = knex('party_contacts').where('contact_id', req.body.contact_id).update(pushData).then(function (data) {
+    return data[0]
+  })
+
+  res.send({data: ret})
+})
 
 router.post('/', async function (req, res) {
   const createdAt = new Date();
@@ -120,7 +161,6 @@ router.put('/', async function (req, res) {
       return data
     })
   }
-  console.log(ret);
 })
 
 router.delete('/:party_id', function (req, res) {

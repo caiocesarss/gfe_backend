@@ -26,7 +26,7 @@ module.exports = function(server) {
     const DocumentTypes = require('../api/financials/common/documentTypes');
     mainApi.use('/common/documentTypes', DocumentTypes);
 
-    const PayablesInvoice = require('../api/financials/payables/p_invoices');
+    const PayablesInvoice = require('../api/financials/payables/PInvoices');
     mainApi.use('/payables/invoice', PayablesInvoice);
 
     const ReceivablesInvoice = require('../api/financials/receivables/RInvoices.js');

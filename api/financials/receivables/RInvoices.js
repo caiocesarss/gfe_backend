@@ -4,10 +4,18 @@ const router = express.Router()
 
 
 router.get('/', function(req, res){
-    knex.select().from('r_invoices').then(data=>{
+    knex.select().from('r_invoices_v').then(data=>{
         res.send(data)
       })
 })
+
+router.get('/:invoice_id', function(req, res){
+  knex.select().from('r_invoices_v').where('invoice_id', req.params.invoice_id).then(data=>{
+      res.send(data)
+    })
+})
+
+
 router.post('/', function(req, res){
   const createdAt  = new Date();
   const pushData = {...req.body, created_at: createdAt};

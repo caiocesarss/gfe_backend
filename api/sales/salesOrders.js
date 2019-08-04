@@ -1,7 +1,8 @@
 const knex = require('../../config/dbpg');
 const express = require('express')
 const router = express.Router()
-const CircularJSON = require('circular-json')
+const CircularJSON = require('circular-json');
+const { generateAR } = require('./ARProcess');
 
 router.get('/', function (req, res) {
   //knex.select().from('sales_orders').then(data=>{
@@ -74,6 +75,7 @@ router.delete('/:order_id', function (req, res) {
 router.post('/adddetail', function (req, res) {
   const orderId = req.body.order_id;
   const saleDetails = req.body.accounts;
+  let arRet = [];
   saleDetails.map(async detail => {
     const inData = { ...detail, order_id: orderId }
     const intof = detail;
@@ -86,6 +88,7 @@ router.post('/adddetail', function (req, res) {
         })
       })
     }
+    arRet = await generateAR(detailId);
   })
   res.status(200).send(orderId)
 })
@@ -163,5 +166,10 @@ const setArData = (data) => {
   })
 
 }
+
+router.get('/generateAR', async function (req, res){
+  const ret = await generateAR(req.query.detail_id);
+  res.send(ret)
+})
 
 module.exports = router
