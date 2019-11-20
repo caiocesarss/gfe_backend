@@ -16,9 +16,33 @@ async function generateAR(orderDetailID) {
     const orderDetail = result[0];
     const createdAt = new Date();
     let qtInserted = 0;
+
+    const pushData = {
+        invoice_type: 'ENTRADA',
+        amount: orderDetail.entry_amount,
+        sales_detail_id: orderDetail.detail_id,
+        sales_order_id: orderDetail.order_id,
+        party_id: orderDetail.party_id,
+        party_account_id: orderDetail.party_account_id,
+        invoice_date: new Date(),
+        parcel_no: 1,
+        invoice_status: 'REGISTRADO',
+        payment_status: 'PAGO',
+        document_type: 'FATURA',
+        created_at: createdAt,
+    }
+    const resultEntry = await knex('r_invoices').insert(pushData).then(data => {
+        return data[0];
+    })
+
+    if (!resultEntry){
+        return {error: 'Não foi possível inserir a ENTRADA. Rotina abortada'}
+    }
+
     for (i = 1; i <= orderDetail.months_qt; i++) {
-        let dueDate = new Date(order[0].ordered_date);
-        
+        //let dueDate = new Date(order[0].ordered_date);
+        let dueDate = new Date(new Date(order[0].ordered_date).getFullYear(), orderDetail.first_due_month-2);
+        //let dueDate = new Date(orderDetail.first_due_month);
         dueDate.setDate(orderDetail.monthly_due_days);
         dueDate = new Date(dueDate.setMonth(dueDate.getMonth() + i));
         const invoiceDate = new Date();
@@ -27,6 +51,7 @@ async function generateAR(orderDetailID) {
         referenceDate = new Date(referenceDate.setMonth(referenceDate.getMonth() + i));
 
         const pushData = {
+            
             invoice_type: 'MENSALIDADE',
             sales_detail_id: orderDetail.detail_id,
             sales_order_id: orderDetail.order_id,
@@ -47,9 +72,11 @@ async function generateAR(orderDetailID) {
         const result = await knex('r_invoices').insert(pushData).then(data => {
             return data[0];
         })
+        
         if (result > 0) {
             qtInserted++;
         }
+
 
     }
 
@@ -70,7 +97,11 @@ async function generateARFurthers(orderDetail, orderedDate) {
     }
 
     const furtherDetail = result[0];
-    const qtFurthers = Math.ceil(orderDetail.months_qt / 12);
+    let qtFurthers = Math.ceil(orderDetail.months_qt / 12);
+    let today = new Date();
+    if (furtherDetail.due_month > today.getMonth()+1) {
+        qtFurthers -= 1;
+    }
     const createdAt = new Date();
     for (i = 1; i <= qtFurthers; i++) {
         const invoiceDate = new Date();

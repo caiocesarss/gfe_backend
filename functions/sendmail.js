@@ -22,7 +22,7 @@ router.post('/', async function(req, res){
 })
 
 
-async function sendmail(){
+async function sendmail(message){
   
     // create reusable transporter object using the default SMTP transport
     let transporter = nodemailer.createTransport({
@@ -39,7 +39,7 @@ async function sendmail(){
         to: "caiosiqueira@outlook.com, uecaio@gmail.com", // list of receivers
         subject: "POST hello", // Subject line
         text: "Hello world?", // plain text body
-        html: "<b>Hello world?</b>" // html body
+        html: "<b>message: "+message+"</b>" // html body
       };
       
     let info = await transporter.sendMail(message, (error, info) => {

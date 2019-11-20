@@ -129,6 +129,7 @@ const setAr = (orderId, res) => {
     ', sod.monthly_qt_parcel ' +
     ', sod.monthly_parcel_amount ' +
     ', sod.monthly_due_days ' +
+    ', sod.first_due_month ' +
     ', sod.monthly_parcel_cub_amount ' +
     ', pa.legal_account_name ' +
     ', pa.doc1_type ' +

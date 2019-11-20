@@ -24,7 +24,7 @@ router.post('/setinvoice/', function(req, res){
   })
 })
 
-router.put('/:invoice_id', function(req,res){
+router.put('/setinvoice/', function(req,res){
  
   const updatedAt  = new Date();
   let pushData = {...req.body, updated_at: updatedAt};

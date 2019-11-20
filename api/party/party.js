@@ -159,6 +159,7 @@ router.delete('/:party_id', async function (req, res) {
 })
 
 async function setPartyAccount(data, partyId) {
+  const createddAt = new Date();
   const locationData = {
     address_line: data.address_line,
     number: data.number,
@@ -173,23 +174,25 @@ async function setPartyAccount(data, partyId) {
   })
   let doc1_type = '';
   let doc2_type = '';
+  let accountAliasName = data.account_alias_name;
   if (data.type == 'F') {
     doc1_type = 'CPF';
     doc2_type = 'RG';
+    accountAliasName = data.name;
   } else {
     doc1_type = 'CNPJ';
     doc2_type = 'IE';
   }
   const partyAccountData = {
     party_id: data.party_id || partyId,
-    account_alias_name: data.account_alias_name,
-    account_alias_name: data.account_alias_name,
+    account_alias_name: accountAliasName,
     legal_account_name: data.legal_account_name,
     doc1_type: doc1_type,
     doc1_value: data.doc1_value,
     doc2_type: doc2_type,
     doc2_value: data.doc2_value,
-    location_id: locationId
+    location_id: locationId,
+    created_at: createddAt
   }
   const accountId = await knex.insert(partyAccountData).into('party_accounts').then(data => {
     return data[0];

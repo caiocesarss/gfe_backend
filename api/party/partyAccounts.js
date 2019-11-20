@@ -169,6 +169,17 @@ router.delete('/:party_id', function (req, res) {
   })
 })
 
+router.delete('/contact/:contact_id', async function (req, res) {
+  const ret = await knex('party_contacts').where({ contact_id: req.params.contact_id }).del().then(function (data) {
+    return data;
+  })
+  if (ret){
+    res.sendStatus(200);
+  } else {
+  res.sendStatus(400)
+  }
+})
+
 const getPartyAccounts = (req, res) => {
   knex.select().from('party_accounts').then(data => {
     res.send(data)
