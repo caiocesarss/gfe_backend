@@ -5,6 +5,9 @@ const router = express.Router();
 const nodemailer = require("nodemailer");
 const moment = require('moment');
 
+new Intl
+    .NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+    .format(500.00);
 
 router.get('/', function (req, res) {
     res.send(processAR())
@@ -72,9 +75,26 @@ const processAR = async (invoiceId) => {
 
 
 async function sendmail(messageText){
+    //let transporter = nodemailer.createTransport(options[, defaults])
+    let transporter = nodemailer.createTransport({
+        //host: 'smtp.gmail.com',
+        service: 'gmail',
+        //port: 587,
+        //secure: true,
+        auth:{
+        user: 'uecaio@gmail.com',
+        pass: '*****$' }
+        });
+
+        const message = {
+            from: 'uecaio@gmail.com',
+            to: 'caiosiqueira@outlook.com',
+            subject: 'teste parcela',
+            html: messageText,
+            };
   
     // create reusable transporter object using the default SMTP transport
-    let transporter = nodemailer.createTransport({
+    /*let transporter = nodemailer.createTransport({
         host: "smtp.mailtrap.io",
         port: 2525,
        // auth: {
@@ -86,7 +106,8 @@ async function sendmail(messageText){
             pass: "5cca59c0faa63e"
           }
     });
-  
+    */
+  /*
     const message = {
         from: '"Fred Foo 👻" <foo@example.com>', // sender address
         to: "caiosiqueira@outlook.com, uecaio@gmail.com", // list of receivers
@@ -94,11 +115,14 @@ async function sendmail(messageText){
         text: "Hello world?", // plain text body
         html: messageText // html body
       };
-      
+      */
     let ret = await transporter.sendMail(message, (error, info) => {
+        console.log('start sending...')
         if(error){
+            console.log(error)
             return error;
         } else {
+            console.log('sent')
             return 'OK';
         }
         //console.log("Message sent: %s", info.messageId);
