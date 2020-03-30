@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt');
 
 const env = require('../../config/.env');
 
+const createLog = require('../../functions/createLog')
+
 const sendErrorsFromDB = (res, dbErrors) => {
     const errors = [];
     _.forIn(dbErrors.errors, error => errors.push(error.message));
@@ -25,6 +27,10 @@ const login = async (req, res, next) => {
         const token = jwt.sign({ ...user }, env.authSecret, {
             expiresIn: "1 day"
         });
+
+        const description = 'Usuário realizou login'
+        createLog({ token, description })
+
         const { name, username } = user;
         res.json({ name, username, token });
     } else {
