@@ -3,7 +3,7 @@ const knex = require('../../config/dbpg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-const env = require('../../config/.env');
+const authSecret = process.env.AUTH_SECRET
 
 const sendErrorsFromDB = (res, dbErrors) => {
     const errors = [];
@@ -22,7 +22,7 @@ const login = async (req, res, next) => {
     })
 
     if (user && bcrypt.compareSync(password, user.password)) {
-        const token = jwt.sign({ ...user }, env.authSecret, {
+        const token = jwt.sign({ ...user }, authSecret, {
             expiresIn: "1 day"
         });
         const { name, username } = user;
@@ -34,7 +34,7 @@ const login = async (req, res, next) => {
 
 const validateToken = (req, res, next) => {
     const token = req.body.token || "";
-    jwt.verify(token, env.authSecret, function (err, decoded) {
+    jwt.verify(token, authSecret, function (err, decoded) {
         return res.status(200).send({ valid: !err });
     });
 };
