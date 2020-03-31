@@ -4,6 +4,8 @@ const router = express.Router()
 const CircularJSON = require('circular-json');
 const { generateAR } = require('./ARProcess');
 
+const createLog = require('../../functions/createLog')
+
 router.get('/', function (req, res) {
   //knex.select().from('sales_orders').then(data=>{
   //    res.send(data)
@@ -52,6 +54,10 @@ router.post('/', function (req, res) {
   const createdAt = new Date();
   const pushData = { ...req.body, created_at: createdAt };
   knex.insert(pushData).into('sales_orders').then(function (data) {
+    const token = req.headers.authorization || ''
+    const description = `Criação da venda: ${data}`
+    createLog({ token, description })
+
     res.send(data)
   })
 })
@@ -62,12 +68,20 @@ router.put('/:order_id', function (req, res) {
   const updatedAt = new Date();
   const pushData = { ...req.body, updated_at: updatedAt };
   knex('sales_orders').where({ order_id: req.params.order_id }).update(pushData).then(function (data) {
+    const token = req.headers.authorization || ''
+    const description = `Atualização da venda: ${req.params.order_id}`
+    createLog({ token, description })
+
     res.send(data)
   })
 })
 
 router.delete('/:order_id', function (req, res) {
   knex('sales_orders').where({ order_id: req.params.order_id }).del().then(function (data) {
+    const token = req.headers.authorization || ''
+    const description = `Exclusão da venda: ${req.params.order_id}`
+    createLog({ token, description })
+
     res.send(data);
   })
 })
