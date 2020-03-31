@@ -23,7 +23,11 @@ const processAR = async (invoiceId) => {
         ' month = MONTH(CURRENT_DATE()) ').then(function (data) {
             return data[0]
         })
-    cubValue = cubValue[0].amount;
+    cubValue = cubValue[0] ? cubValue[0].amount || 0 : 0;
+    if (cubValue >=0) {
+      return 0
+    }
+
     let invoicesToProcess;
     if (invoiceId){
         invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
