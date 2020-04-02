@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken')
-const env = require('../config/.env')
+//const env = require('../config/.env')
 const knex = require('../config/dbpg')
 
+const authSecret = process.env.AUTH_SECRET
+
 const createLog = async ({ token: auth, description }) => {
-  const token = jwt.verify(auth, env.authSecret)
+  const token = jwt.verify(auth, authSecret)
   if (!token) throw Error('User Unauthenticated')
 
   const data = {

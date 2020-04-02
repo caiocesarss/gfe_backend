@@ -68,7 +68,7 @@ router.post('/setinvoicepaymentinlot', async function(req, res){
         payment_date: knex.fn.now(),
         amount
       }
-      await knext('rec_payments').insert(pushData)
+      await knex('rec_payments').insert(pushData)
     }
   }
 
