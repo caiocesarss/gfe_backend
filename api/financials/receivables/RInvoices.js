@@ -47,7 +47,8 @@ router.post('/setinvoicepayment', function(req, res){
 })
 
 router.post('/setinvoicepaymentinlot', async function(req, res){
-  const ids = req.body;
+  let pendentValue = req.body.amount
+  const ids = req.body.ids
   const paidIds = []
 
   for (let id of ids) {
@@ -61,14 +62,15 @@ router.post('/setinvoicepaymentinlot', async function(req, res){
 
     const amount = item.amount - payments.reduce((acc, { amount }) => acc + amount, 0)
 
-    if (amount > 0) {
+    if (amount > 0 && pendentValue > 0) {
       paidIds.push(id)
       const pushData = {
         invoice_id: id,
         payment_date: knex.fn.now(),
-        amount
+        amount: amount > pendentValue ? pendentValue : amount
       }
-      await knext('rec_payments').insert(pushData)
+      pendentValue -= amount
+      await knex('rec_payments').insert(pushData)
     }
   }
 
