@@ -69,10 +69,7 @@ router.post('/setinvoicepaymentinlot', async function(req, res){
         payment_date: knex.fn.now(),
         amount: amount > pendentValue ? pendentValue : amount
       }
-<<<<<<< HEAD
-=======
       pendentValue -= amount
->>>>>>> 19413eee1b4571fcf8bf62252fea8dacac3ada64
       await knex('rec_payments').insert(pushData)
     }
   }

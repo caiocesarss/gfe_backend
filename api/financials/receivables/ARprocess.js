@@ -20,23 +20,29 @@ router.get('/:invoice_id', function (req, res) {
 const processAR = async (invoiceId) => {
     let cubValue = await knex.raw('select amount from cubs ' +
         ' WHERE YEAR = YEAR(CURRENT_DATE()) AND ' +
-        ' month = MONTH(CURRENT_DATE()) ').then(function (data) {
+        ' month = MONTH(CURRENT_DATE()) ')
+        //.on('query', function(data) {console.log(data);})
+        .then(function (data) {
             return data[0]
         })
-    cubValue = cubValue[0] ? cubValue[0].amount || 0 : 0;
-    if (cubValue >=0) {
+    cubValue = !_.isEmpty(cubValue) ? parseFloat(cubValue[0].amount) : 0;
+  
+    if (cubValue <=0) {
       return 0
     }
 
     let invoicesToProcess;
-    if (invoiceId){
+    if (!isNaN(invoiceId)){
+        console.log('singlge id '+ invoiceId)
         invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
         'FROM r_invoices ' +
-        'WHERE invoice_id =  ' +invoiceId).then(function (data) {
+        'WHERE invoice_id =  ' +invoiceId)
+        //.on('query', function(data) {console.log(data);})
+        .then(function (data) {
             return data[0]
         })
     } else {
-
+        console.log('multiple');
     invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
         'FROM r_invoices ' +
         'WHERE YEAR(due_date) = YEAR(CURRENT_DATE()) AND ' +
@@ -69,7 +75,9 @@ const processAR = async (invoiceId) => {
         textMessage += '<a href="mailto:financeiro@excellenceempreendimentos.com.br" target="_blank" rel="noopener noreferrer"><span style="color:#0563C1">financeiro@excellenceempreendimentos.com.br</a><br />';
         textMessage += 'Endereço: Rua 252 nº 425 – Sala 03 – Meia Praia – Itapema – SC<br />';
         textMessage += '<a href="excellenceempreendimentos.com.br" target="_blank">excellenceempreendimentos.com.br</a>';
-    sendmail(textMessage);
+    
+    console.log('fatura: '+invoice.invoice_id);
+        //sendmail(textMessage);
     })
 
     
@@ -79,6 +87,7 @@ const processAR = async (invoiceId) => {
 
 
 async function sendmail(messageText){
+    
     //let transporter = nodemailer.createTransport(options[, defaults])
     let transporter = nodemailer.createTransport({
         //host: 'smtp.gmail.com',
@@ -87,7 +96,7 @@ async function sendmail(messageText){
         //secure: true,
         auth:{
         user: 'uecaio@gmail.com',
-        pass: '*****$' }
+        pass: 'Stein353#$' }
         });
 
         const message = {
@@ -120,6 +129,7 @@ async function sendmail(messageText){
         html: messageText // html body
       };
       */
+     
     let ret = await transporter.sendMail(message, (error, info) => {
         console.log('start sending...')
         if(error){
