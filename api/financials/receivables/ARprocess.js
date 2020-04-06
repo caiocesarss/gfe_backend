@@ -13,18 +13,23 @@ const sendmail = require('sendmail')({
       silent: true
   })
 const moment = require('moment');
+require ('moment/locale/pt-br');
+
 const base64Logo = require('../../../utils/base64Logo')
 
 
-router.get('/', function (req, res) {
-    res.send(processAR())
+router.get('/', async function (req, res) {
+    const retorno = await processAR();
+    res.send({status: 200, data: retorno})
 })
 
-router.get('/:invoice_id', function (req, res) {
-    res.send(processAR(req.params.invoice_id))
+router.get('/:invoice_id', async function (req, res) {
+    const retorno = await processAR(req.params.invoice_id);
+    res.send({status:200, data: retorno})
 })
 
 const processAR = async (invoiceId) => {
+    
     let cubValue = await knex.raw('select amount from cubs ' +
         ' WHERE YEAR = YEAR(CURRENT_DATE()) AND ' +
         ' month = MONTH(CURRENT_DATE()) ')
@@ -32,12 +37,13 @@ const processAR = async (invoiceId) => {
         .then(function (data) {
             return data[0]
         })
+        
     cubValue = !_.isEmpty(cubValue) ? parseFloat(cubValue[0].amount) : 0;
-  
+
     if (cubValue <=0) {
       return 0
     }
-
+ 
     let invoicesToProcess;
     if (!isNaN(invoiceId)){
         invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
@@ -48,32 +54,36 @@ const processAR = async (invoiceId) => {
             return data[0]
         })
     } else {
-  
+        
     invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
         'FROM r_invoices ' +
         'WHERE YEAR(due_date) = YEAR(CURRENT_DATE()) AND ' +
         'MONTH(due_date) = MONTH(CURRENT_DATE()) ').then(function (data) {
-            return data[0]
+            return data[0];
         })
     }
-        
+        retArray = new Array();
         invoicesToProcess.map(invoice=> {
+            
         const calcAmount = invoice.cub_amount * cubValue;
         let referenceDate = new Date(invoice.reference_date);
         let dueDate = new Date(invoice.due_date);
-
+        
         dueDate = moment(dueDate).format('DD/MM/YYYY');
         referenceDate = (moment(referenceDate).format('MMMM'))
-        moment.locale('pt-BR');
+        moment.locale('pt-br');
         const cubAmount = invoice.cub_amount;
         const ret = knex('r_invoices').where('invoice_id', invoice.invoice_id).update('amount', calcAmount).then(data => {
             return data[0];
         });
         
+        
         let textMessage = 'Bom dia<br /><br />';
-        textMessage += `Segue a descrição da parcela referente ao mês de ${referenceDate}, com vencimento em ${dueDate}. <br /><br />`;
-        textMessage += `Fatura num: ${invoice.invoice_id} <br /><br />`;
-        textMessage += `Quantidade em CUB ${cubAmount} X Valor do CUB de ${formatMoney(cubValue)}: = Valor total da parcela <b> R$: ${formatMoney(calcAmount)} </b>.`;
+        textMessage += `Segue a descrição da parcela referente ao mês de <b>${referenceDate}</b>, com vencimento em ${dueDate}. <br /><br />`;
+        textMessage += `<div style="font-family: Courier New">T&iacute;tulo n&deg;: ${invoice.invoice_id} <br /><br />`;
+        textMessage += `Quantidade em CUB (A): ${formatNumero(cubAmount, 4)}<br />`;
+        textMessage += `Valor do CUB (B): ${formatMoney(cubValue)}<br />`;
+        textMessage += `Valor total da parcela (A * B): <b> R$ ${formatMoney(calcAmount)} </b></div>`;
         textMessage += '<br /><br /><br /><br />';
         textMessage += 'Atenciosamente<br /><br /><br />';
         textMessage += `<img src="${base64Logo}"`;
@@ -83,28 +93,36 @@ const processAR = async (invoiceId) => {
         textMessage += 'Endereço: Rua 252 nº 425 – Sala 03 – Meia Praia – Itapema – SC<br />';
         textMessage += '<a href="excellenceempreendimentos.com.br" target="_blank">excellenceempreendimentos.com.br</a>';
     
-        console.log('fatura: '+invoice.invoice_id);
+        /*console.log('fatura: '+invoice.invoice_id);
         console.log('valor cub do mes: '+cubValue);
         console.log('valor da parcela em cub: '+cubAmount);
         console.log('valor ref: '+formatMoney(invoice.invoice_id));
         console.log('valor calculado: '+formatMoney(calcAmount));
-        console.log('==============='+formatNumero(1500.29));
-        console.log('');
-       
+        console.log('===============');
+        console.log('');*/
+        
         //sendAuthMail(textMessage, 'fatura: '+invoice.invoice_id);
+        retArray.push({mes: referenceDate, invoice_id:invoice.invoice_id, amount: formatMoney(calcAmount)})
     })
 
-    
-
-    return 1;
+   
+    return retArray;
+   // return 1;
 }
 
-function formatMoney(val){ console.log(val);
-    return  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+function formatMoney(n, c, d, t){ 
+    //return  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
+    //return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    c = isNaN(c = Math.abs(c)) ? 2 : c, d = d == undefined ? "," : d, t = t == undefined ? "." : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
+    return 'R$ '+s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+      
 }
 
-function formatNumero(val){
-    return  new Intl.NumberFormat('pt-BR', { style: 'decimal' }).format(val);
+function formatNumero(n, c, d, t){
+    //return  new Intl.NumberFormat('pt-BR', { style: 'decimal' }).format(n);
+    c = isNaN(c = Math.abs(c)) ? 2 : c, d = d == undefined ? "," : d, t = t == undefined ? "." : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
+    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+
 }
 
 async function sendAuthMail(messageText, messageTitle){

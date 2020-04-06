@@ -28,19 +28,19 @@ module.exports = function (server) {
 
     /* FINANCIALS */
     const FinGroups = require('../api/financials/common/fingroups');
-    mainApi.use('/common/finGroups', FinGroups);
+    mainApi.use('/common/finGroups', auth, FinGroups);
 
     const DocumentTypes = require('../api/financials/common/documentTypes');
-    mainApi.use('/common/documentTypes', DocumentTypes);
+    mainApi.use('/common/documentTypes', auth, DocumentTypes);
 
     const PayablesInvoice = require('../api/financials/payables/PInvoices');
-    mainApi.use('/payables/invoice', PayablesInvoice);
+    mainApi.use('/payables/invoice', auth, PayablesInvoice);
 
     const ReceivablesInvoice = require('../api/financials/receivables/RInvoices');
-    mainApi.use('/receivables/invoice', ReceivablesInvoice);
+    mainApi.use('/receivables/invoice', auth, ReceivablesInvoice);
 
     const ReceivablesPayment= require('../api/financials/receivables/RPayments');
-    mainApi.use('/receivables/payment', ReceivablesPayment);
+    mainApi.use('/receivables/payment', auth, ReceivablesPayment);
 
     const ARProcess = require('../api/financials/receivables/ARprocess');
     mainApi.use('/receivables/arprocess', auth, ARProcess);
@@ -54,26 +54,26 @@ module.exports = function (server) {
 
     /* GENERAL */
     const Location = require('../api/general/location');
-    mainApi.use('/location', Location);
+    mainApi.use('/location', auth, Location);
 
     const City = require('../api/general/city');
-    mainApi.use('/city', City);
+    mainApi.use('/city', auth, City);
 
     const Uf = require('../api/general/uf');
     mainApi.use('/uf', auth, Uf);
 
     const selectList = require('../api/common/selectList');
-    mainApi.use('/selectlist', selectList);
+    mainApi.use('/selectlist', auth, selectList);
     /* END GENERAL */
 
     /* SETTINGS */
     const cub = require('../api/settings/cub');
-    mainApi.use('/settings/cub', cub);
+    mainApi.use('/settings/cub', auth, cub);
     /* END SETTINGS */
 
     /* SEND MAIL */
     const SendMail = require('../functions/sendmail')
-    mainApi.use('/sendmail', SendMail);
+    mainApi.use('/sendmail', auth, SendMail);
 
     const openApi = express.Router()
     server.use('/oapi', openApi)
