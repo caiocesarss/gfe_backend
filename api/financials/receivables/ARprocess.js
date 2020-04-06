@@ -2,12 +2,19 @@ const knex = require('../../../config/dbpg');
 const express = require('express')
 const _ = require('lodash');
 const router = express.Router();
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
+const sendmail = require('sendmail')({
+    logger: {
+      debug: console.log,
+      info: console.info,
+      warn: console.warn,
+      error: console.error
+    },
+      silent: true
+  })
 const moment = require('moment');
 const base64Logo = require('../../../utils/base64Logo')
-new Intl
-    .NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-    .format(500.00);
+
 
 router.get('/', function (req, res) {
     res.send(processAR())
@@ -33,7 +40,6 @@ const processAR = async (invoiceId) => {
 
     let invoicesToProcess;
     if (!isNaN(invoiceId)){
-        console.log('singlge id '+ invoiceId)
         invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
         'FROM r_invoices ' +
         'WHERE invoice_id =  ' +invoiceId)
@@ -42,7 +48,7 @@ const processAR = async (invoiceId) => {
             return data[0]
         })
     } else {
-        console.log('multiple');
+  
     invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
         'FROM r_invoices ' +
         'WHERE YEAR(due_date) = YEAR(CURRENT_DATE()) AND ' +
@@ -62,11 +68,12 @@ const processAR = async (invoiceId) => {
         const cubAmount = invoice.cub_amount;
         const ret = knex('r_invoices').where('invoice_id', invoice.invoice_id).update('amount', calcAmount).then(data => {
             return data[0];
-        })
+        });
+        
         let textMessage = 'Bom dia<br /><br />';
         textMessage += `Segue a descrição da parcela referente ao mês de ${referenceDate}, com vencimento em ${dueDate}. <br /><br />`;
         textMessage += `Fatura num: ${invoice.invoice_id} <br /><br />`;
-        textMessage += `Quantidade em CUB ${cubAmount} X Valor do CUB de ${cubValue}: = Valor total da parcela <b> R$: ${calcAmount.toFixed(2)} </b>.`;
+        textMessage += `Quantidade em CUB ${cubAmount} X Valor do CUB de ${formatMoney(cubValue)}: = Valor total da parcela <b> R$: ${formatMoney(calcAmount)} </b>.`;
         textMessage += '<br /><br /><br /><br />';
         textMessage += 'Atenciosamente<br /><br /><br />';
         textMessage += `<img src="${base64Logo}"`;
@@ -76,8 +83,15 @@ const processAR = async (invoiceId) => {
         textMessage += 'Endereço: Rua 252 nº 425 – Sala 03 – Meia Praia – Itapema – SC<br />';
         textMessage += '<a href="excellenceempreendimentos.com.br" target="_blank">excellenceempreendimentos.com.br</a>';
     
-    console.log('fatura: '+invoice.invoice_id);
-        //sendmail(textMessage);
+        console.log('fatura: '+invoice.invoice_id);
+        console.log('valor cub do mes: '+cubValue);
+        console.log('valor da parcela em cub: '+cubAmount);
+        console.log('valor ref: '+formatMoney(invoice.invoice_id));
+        console.log('valor calculado: '+formatMoney(calcAmount));
+        console.log('==============='+formatNumero(1500.29));
+        console.log('');
+       
+        //sendAuthMail(textMessage, 'fatura: '+invoice.invoice_id);
     })
 
     
@@ -85,8 +99,15 @@ const processAR = async (invoiceId) => {
     return 1;
 }
 
+function formatMoney(val){ console.log(val);
+    return  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+}
 
-async function sendmail(messageText){
+function formatNumero(val){
+    return  new Intl.NumberFormat('pt-BR', { style: 'decimal' }).format(val);
+}
+
+async function sendAuthMail(messageText, messageTitle){
     
     //let transporter = nodemailer.createTransport(options[, defaults])
     let transporter = nodemailer.createTransport({
@@ -106,29 +127,7 @@ async function sendmail(messageText){
             html: messageText,
             };
   
-    // create reusable transporter object using the default SMTP transport
-    /*let transporter = nodemailer.createTransport({
-        host: "smtp.mailtrap.io",
-        port: 2525,
-       // auth: {
-        //  user: " 3027926cde3584",
-        //  pass: "957f4a985c0bbe"
-       // }
-        auth: {
-            user: "8484b8af461946",
-            pass: "5cca59c0faa63e"
-          }
-    });
-    */
-  /*
-    const message = {
-        from: '"Fred Foo 👻" <foo@example.com>', // sender address
-        to: "caiosiqueira@outlook.com, uecaio@gmail.com", // list of receivers
-        subject: "POST hello", // Subject line
-        text: "Hello world?", // plain text body
-        html: messageText // html body
-      };
-      */
+
      
     let ret = await transporter.sendMail(message, (error, info) => {
         console.log('start sending...')

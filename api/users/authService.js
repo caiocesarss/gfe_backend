@@ -22,7 +22,6 @@ const login = async (req, res, next) => {
     const user = await knex('users').where('username', username).select().then(data => {
         return data[0]
     })
-
     if (user && bcrypt.compareSync(password, user.password)) {
         const token = jwt.sign({ ...user }, authSecret, {
             expiresIn: "1 day"
