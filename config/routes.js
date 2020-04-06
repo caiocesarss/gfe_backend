@@ -43,12 +43,12 @@ module.exports = function (server) {
     mainApi.use('/receivables/payment', ReceivablesPayment);
 
     const ARProcess = require('../api/financials/receivables/ARprocess');
-    mainApi.use('/receivables/arprocess', ARProcess);
+    mainApi.use('/receivables/arprocess', auth, ARProcess);
     /* END FINANCIALS */
 
     /* SALES */
     const SalesOrders = require('../api/sales/salesOrders');
-    mainApi.use('/salesorders', SalesOrders);
+    mainApi.use('/salesorders', auth, SalesOrders);
     /* END SALES */
 
 
@@ -60,7 +60,7 @@ module.exports = function (server) {
     mainApi.use('/city', City);
 
     const Uf = require('../api/general/uf');
-    mainApi.use('/uf', Uf);
+    mainApi.use('/uf', auth, Uf);
 
     const selectList = require('../api/common/selectList');
     mainApi.use('/selectlist', selectList);

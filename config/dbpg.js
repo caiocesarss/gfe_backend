@@ -22,8 +22,8 @@ const knex = require('knex')({
   }
 });
 */
+//senha db aws master3368
 
-/*
 const knex = require('knex')({
   client: 'mysql',
   connection: {
@@ -33,8 +33,8 @@ const knex = require('knex')({
     database : 'finex'
   }
 });
-*/
 
+/*
 const knex = require('knex')({
   client: 'mysql',
   connection: {
@@ -44,6 +44,6 @@ const knex = require('knex')({
     database : 'j1cj4aj0z99qvcyr'
   }
 });
-
+*/
 
 module.exports = knex
