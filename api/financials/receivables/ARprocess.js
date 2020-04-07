@@ -44,65 +44,78 @@ const processAR = async (invoiceId) => {
       return 0
     }
  
-    let invoicesToProcess;
+    let invoicesToProcess = Array();
+    invoicesToProcess.length = 0;
+
     if (!isNaN(invoiceId)){
-        invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
-        'FROM r_invoices ' +
-        'WHERE invoice_id =  ' +invoiceId)
+        invoicesToProcess = await knex.raw('SELECT * ' +
+        'FROM r_invoices r' +
+        ' WHERE r.invoice_id =  ' +invoiceId
+        +' AND case when (select sum(amount) from rec_payments where invoice_id =  r.invoice_id) >= amount then 1 else 0 end = 0 '
+        )
         //.on('query', function(data) {console.log(data);})
         .then(function (data) {
             return data[0]
         })
     } else {
-        
-    invoicesToProcess = await knex.raw('SELECT invoice_id, cub_amount, reference_date, due_date ' +
-        'FROM r_invoices ' +
-        'WHERE YEAR(due_date) = YEAR(CURRENT_DATE()) AND ' +
-        'MONTH(due_date) = MONTH(CURRENT_DATE()) ').then(function (data) {
+        invoicesToProcess = await knex.raw('SELECT * ' +
+        'FROM r_invoices r' +
+        ' WHERE YEAR(r.due_date) = YEAR(CURRENT_DATE()) ' +
+        ' AND case when (select sum(amount) from rec_payments where invoice_id =  r.invoice_id) >= amount then 1 else 0 end = 0 ' +
+        ' AND MONTH(r.due_date) = MONTH(CURRENT_DATE()) ').then(function (data) {
             return data[0];
         })
     }
-        retArray = new Array();
-        invoicesToProcess.map(invoice=> {
-            
-        const calcAmount = invoice.cub_amount * cubValue;
-        let referenceDate = new Date(invoice.reference_date);
-        let dueDate = new Date(invoice.due_date);
-        
-        dueDate = moment(dueDate).format('DD/MM/YYYY');
-        referenceDate = (moment(referenceDate).format('MMMM'))
-        moment.locale('pt-br');
-        const cubAmount = invoice.cub_amount;
-        const ret = knex('r_invoices').where('invoice_id', invoice.invoice_id).update('amount', calcAmount).then(data => {
-            return data[0];
-        });
-        
-        
-        let textMessage = 'Bom dia<br /><br />';
-        textMessage += `Segue a descrição da parcela referente ao mês de <b>${referenceDate}</b>, com vencimento em ${dueDate}. <br /><br />`;
-        textMessage += `<div style="font-family: Courier New">T&iacute;tulo n&deg;: ${invoice.invoice_id} <br /><br />`;
-        textMessage += `Quantidade em CUB (A): ${formatNumero(cubAmount, 4)}<br />`;
-        textMessage += `Valor do CUB (B): ${formatMoney(cubValue)}<br />`;
-        textMessage += `Valor total da parcela (A * B): <b> R$ ${formatMoney(calcAmount)} </b></div>`;
-        textMessage += '<br /><br /><br /><br />';
-        textMessage += 'Atenciosamente<br /><br /><br />';
-        textMessage += `<img src="${base64Logo}"`;
-        textMessage += '<br /><br /><br />Francielle - Financeiro<br /><br />';
-        textMessage += 'Fone: (47) 3241-5198<br />';
-        textMessage += '<a href="mailto:financeiro@excellenceempreendimentos.com.br" target="_blank" rel="noopener noreferrer"><span style="color:#0563C1">financeiro@excellenceempreendimentos.com.br</a><br />';
-        textMessage += 'Endereço: Rua 252 nº 425 – Sala 03 – Meia Praia – Itapema – SC<br />';
-        textMessage += '<a href="excellenceempreendimentos.com.br" target="_blank">excellenceempreendimentos.com.br</a>';
+    retArray = new Array();
+    invoicesToProcess.map(invoice=> {
+    const calcAmount = invoice.cub_amount * cubValue;
+    let referenceDate = new Date(invoice.reference_date);
+    let dueDate = new Date(invoice.due_date);
     
-        /*console.log('fatura: '+invoice.invoice_id);
-        console.log('valor cub do mes: '+cubValue);
-        console.log('valor da parcela em cub: '+cubAmount);
-        console.log('valor ref: '+formatMoney(invoice.invoice_id));
-        console.log('valor calculado: '+formatMoney(calcAmount));
-        console.log('===============');
-        console.log('');*/
-        
-        //sendAuthMail(textMessage, 'fatura: '+invoice.invoice_id);
-        retArray.push({mes: referenceDate, invoice_id:invoice.invoice_id, amount: formatMoney(calcAmount)})
+    dueDate = moment(dueDate).format('DD/MM/YYYY');
+    referenceDate = (moment(referenceDate).format('MMMM'))
+    moment.locale('pt-br');
+    const cubAmount = invoice.cub_amount;
+    const ret = knex('r_invoices').where('invoice_id', invoice.invoice_id).update('amount', calcAmount).then(data => {
+        return data[0];
+    });
+    
+    
+    let textMessage = 'Bom dia<br /><br />';
+    textMessage += `Segue a descrição da parcela referente ao mês de <b>${referenceDate}</b>, com vencimento em ${dueDate}. <br /><br />`;
+    textMessage += `<div style="font-family: Courier New">T&iacute;tulo n&deg;: ${invoice.invoice_id} <br /><br />`;
+    textMessage += `Quantidade em CUB (A): ${formatNumero(cubAmount, 4)}<br />`;
+    textMessage += `Valor do CUB (B): ${formatMoney(cubValue)}<br />`;
+    textMessage += `Valor total da parcela (A * B): <b> R$ ${formatMoney(calcAmount)} </b></div>`;
+    textMessage += '<br /><br /><br /><br />';
+    textMessage += 'Atenciosamente<br /><br /><br />';
+    textMessage += `<img src="${base64Logo}"`;
+    textMessage += '<br /><br /><br />Francielle - Financeiro<br /><br />';
+    textMessage += 'Fone: (47) 3241-5198<br />';
+    textMessage += '<a href="mailto:financeiro@excellenceempreendimentos.com.br" target="_blank" rel="noopener noreferrer"><span style="color:#0563C1">financeiro@excellenceempreendimentos.com.br</a><br />';
+    textMessage += 'Endereço: Rua 252 nº 425 – Sala 03 – Meia Praia – Itapema – SC<br />';
+    textMessage += '<a href="excellenceempreendimentos.com.br" target="_blank">excellenceempreendimentos.com.br</a>';
+
+    /*console.log('fatura: '+invoice.invoice_id);
+    console.log('valor cub do mes: '+cubValue);
+    console.log('valor da parcela em cub: '+cubAmount);
+    console.log('valor ref: '+formatMoney(invoice.invoice_id));
+    console.log('valor calculado: '+formatMoney(calcAmount));
+    console.log('===============');
+    console.log('');*/
+    
+    //sendAuthMail(textMessage, 'fatura: '+invoice.invoice_id);
+    retArray.push({ mes: referenceDate,
+                    referenceDate: invoice.reference_date,
+                    vencimento: dueDate,
+                    invoice_id:invoice.invoice_id, 
+                    referenceAmount: formatMoney(invoice.reference_amount),
+                    cubAmount: formatNumero(cubAmount, 4),
+                    cubValue: formatMoney(cubValue),
+                    amount: formatMoney(calcAmount),
+                    parcelNo: invoice.parcel_no,
+                    parcelQt: invoice.parcel_qt
+                })
     })
 
    
