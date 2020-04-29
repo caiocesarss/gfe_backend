@@ -4,7 +4,7 @@ const _ = require('lodash');
 const router = express.Router();
 const nodemailer = require('nodemailer');
 const ses  = require('node-ses');
-const client = ses.createClient({key: 'AKIAJ6TIR4JI5KG22N6Q', secret: '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'});
+const client = ses.createClient({key: process.env.AWS_API_KEY, secret: process.env.AWS_API_SECRET});
 const sendmail = require('sendmail')({
     logger: {
       debug: console.log,
