@@ -1,0 +1,17 @@
+{
+    "Version": "2008-10-17",
+    "Statement": [
+        {
+            "Sid": "stmt1588198406042",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::150625551103:root"
+            },
+            "Action": [
+                "ses:SendEmail",
+                "ses:SendRawEmail"
+            ],
+            "Resource": "arn:aws:ses:us-east-1:150625551103:identity/excellenceempreendimentos.com.br"
+        }
+    ]
+}

@@ -3,6 +3,7 @@ const express = require('express')
 const _ = require('lodash');
 const router = express.Router();
 const nodemailer = require('nodemailer');
+const aws = require('aws-sdk');
 const sendmail = require('sendmail')({
     logger: {
       debug: console.log,
@@ -14,6 +15,8 @@ const sendmail = require('sendmail')({
   })
 const moment = require('moment');
 require ('moment/locale/pt-br');
+
+aws.config.loadFromPath('../../../config/aws_ses.json');
 
 const base64Logo = require('../../../utils/base64Logo')
 
@@ -139,6 +142,30 @@ function formatNumero(n, c, d, t){
 }
 
 async function sendAuthMail(messageText, messageTitle){
+
+    let transporter = nodemailer.createTransport({
+        SES: new aws.SES({
+            apiVersion: '2010-12-01'
+        }),
+        sendingRate: 1 // max 1 messages/second
+    });
+    
+    // Push next messages to Nodemailer
+    transporter.on('idle', () => {
+        while (transporter.isIdle()) {
+            transporter.sendMail({
+                from: 'fatura@excellenceempreendimentos.com.br',
+                to: 'caiosiqueira@outlook.com',
+                subject: 'Fatura teste',
+                text: 'teste enviado da fatura pela aws ses'
+            }, (err, info) => {
+                console.log(info.envelope);
+                console.log(info.messageId);
+            });
+        }
+    });
+
+    return 'OK';
     
     //let transporter = nodemailer.createTransport(options[, defaults])
     let transporter = nodemailer.createTransport({
