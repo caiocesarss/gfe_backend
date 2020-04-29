@@ -16,7 +16,7 @@ const sendmail = require('sendmail')({
 const moment = require('moment');
 require ('moment/locale/pt-br');
 
-aws.config.loadFromPath('../../../config/aws_ses.json');
+aws.config.loadFromPath('aws_ses.json');
 
 const base64Logo = require('../../../utils/base64Logo')
 
