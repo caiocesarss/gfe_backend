@@ -3,7 +3,8 @@ const express = require('express')
 const _ = require('lodash');
 const router = express.Router();
 const nodemailer = require('nodemailer');
-const aws = require('aws-sdk');
+const ses  = require('node-ses');
+const client = ses.createClient({key: 'AKIAJ6TIR4JI5KG22N6Q', secret: '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'});
 const sendmail = require('sendmail')({
     logger: {
       debug: console.log,
@@ -15,8 +16,6 @@ const sendmail = require('sendmail')({
   })
 const moment = require('moment');
 require ('moment/locale/pt-br');
-
-aws.config.loadFromPath('aws_ses.json');
 
 const base64Logo = require('../../../utils/base64Logo')
 
@@ -143,30 +142,17 @@ function formatNumero(n, c, d, t){
 
 async function sendAuthMail(messageText, messageTitle){
 
-    let transporter = nodemailer.createTransport({
-        SES: new aws.SES({
-            apiVersion: '2010-12-01'
-        }),
-        sendingRate: 1 // max 1 messages/second
-    });
-    
-    // Push next messages to Nodemailer
-    transporter.on('idle', () => {
-        while (transporter.isIdle()) {
-            transporter.sendMail({
-                from: 'fatura@excellenceempreendimentos.com.br',
-                to: 'caiosiqueira@outlook.com',
-                subject: 'Fatura teste',
-                text: 'teste enviado da fatura pela aws ses'
-            }, (err, info) => {
-                console.log(info.envelope);
-                console.log(info.messageId);
-            });
-        }
-    });
+    client.sendEmail({
+        to: 'caio.siqueira@outlook.com',
+        from: 'teste@excellenceempreendimentos.com.br',
+        subject: 'teste aws ses',
+        message: '<h1>Título</h1><p>mensagem</p>'
+    }, function(err, data, res){
+
+    })
 
     return 'OK';
-    
+    /*
     //let transporter = nodemailer.createTransport(options[, defaults])
     let transporter = nodemailer.createTransport({
         //host: 'smtp.gmail.com',
@@ -204,7 +190,7 @@ async function sendAuthMail(messageText, messageTitle){
         // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
         
     });
-    
+    */
     
    
   }
