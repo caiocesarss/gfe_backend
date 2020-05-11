@@ -3,8 +3,7 @@ const express = require('express')
 const _ = require('lodash');
 const router = express.Router();
 const nodemailer = require('nodemailer');
-const ses  = require('node-ses');
-const client = ses.createClient({key: process.env.AWS_API_KEY, secret: process.env.AWS_API_SECRET});
+
 const sendmail = require('sendmail')({
     logger: {
       debug: console.log,
@@ -142,17 +141,6 @@ function formatNumero(n, c, d, t){
 
 async function sendAuthMail(messageText, messageTitle){
 
-    client.sendEmail({
-        to: 'caio.siqueira@outlook.com',
-        from: 'teste@excellenceempreendimentos.com.br',
-        subject: 'teste aws ses',
-        message: '<h1>Título</h1><p>mensagem</p>'
-    }, function(err, data, res){
-
-    })
-
-    return 'OK';
-    /*
     //let transporter = nodemailer.createTransport(options[, defaults])
     let transporter = nodemailer.createTransport({
         //host: 'smtp.gmail.com',
@@ -161,7 +149,7 @@ async function sendAuthMail(messageText, messageTitle){
         //secure: true,
         auth:{
         user: 'uecaio@gmail.com',
-        pass: 'Stein353#$' }
+        pass: 'S' }
         });
 
         const message = {
@@ -190,7 +178,7 @@ async function sendAuthMail(messageText, messageTitle){
         // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
         
     });
-    */
+    
     
    
   }
